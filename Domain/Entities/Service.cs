@@ -41,7 +41,7 @@ public sealed class Service : Entity
         Duration = duration;
     }
 
-    public void AssignCategory(Category category) => Category = category;
+    public void UpdateCategory(Category category) => Category = category;
 
     public void AddBenefit(Benefit benefit)
     {

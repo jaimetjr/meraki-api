@@ -20,5 +20,4 @@ namespace Infrastructure.Repositories
             return await _dbSet.Where(c => c.Status == status).ToListAsync();
         }
     }
-
 }

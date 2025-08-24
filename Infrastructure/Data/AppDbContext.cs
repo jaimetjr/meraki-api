@@ -11,6 +11,7 @@ namespace Infrastructure.Data
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<Benefit> Benefits => Set<Benefit>();
         public DbSet<Specialty> Specialties => Set<Specialty>();
+        public DbSet<Testimonial> Testimonials => Set<Testimonial>();
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

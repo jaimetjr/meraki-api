@@ -10,6 +10,7 @@ namespace Domain.Entities
     {
         public string Title { get; private set; }
         public string? Description { get; private set; }
+        public List<Service> Services { get; private set; } = new();
 
         public Benefit()
         {

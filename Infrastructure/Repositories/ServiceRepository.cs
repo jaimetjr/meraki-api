@@ -11,6 +11,20 @@ namespace Infrastructure.Repositories
 
         public async Task<List<Service>> GetByCategoryAsync(string category) =>
             await _dbSet.Where(s => s.Category != null && s.Category.Name == category).ToListAsync();
+
+        public override async Task<List<Service>> GetAllAsync()
+        {
+            return await _dbSet.Include(x => x.Category)
+                               .Include(x => x.Benefits)
+                               .ToListAsync();
+        }
+
+        public override async Task<Service?> GetByIdAsync(Guid id)
+        {
+            return await _dbSet.Include(x => x.Category)
+                               .Include(x => x.Benefits)
+                               .FirstOrDefaultAsync(s => s.Id == id);
+        }
     }
 
 }

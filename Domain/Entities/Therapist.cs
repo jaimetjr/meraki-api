@@ -9,7 +9,6 @@ namespace Domain.Entities
     public sealed class Therapist : Entity
     {
         public string Name { get; private set; }
-        public string Specialty { get; private set; }
         public string Bio { get; private set; }
         public string Image { get; private set; }
         public string Experience { get; private set; }
@@ -21,11 +20,10 @@ namespace Domain.Entities
             
         }
 
-        public Therapist(Guid id, string name, string specialty, string bio, string image, string experience, string education)
+        public Therapist(Guid id, string name, string bio, string image, string experience, string education)
         {
             Id = id;
             Name = name;
-            Specialty = specialty;
             Bio = bio;
             Image = image;
             Experience = experience;

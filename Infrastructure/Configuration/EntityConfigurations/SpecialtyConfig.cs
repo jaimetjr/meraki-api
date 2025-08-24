@@ -9,7 +9,14 @@ namespace Infrastructure.Configuration.EntityConfigurations
         public void Configure(EntityTypeBuilder<Specialty> builder)
         {
             builder.HasKey(s => s.Id);
-            builder.Property(s => s.Name).IsRequired().HasMaxLength(100);
+
+            builder.Property(s => s.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            builder.Property(s => s.Description)
+                .HasMaxLength(300);
+
         }
     }
 

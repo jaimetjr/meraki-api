@@ -20,16 +20,16 @@ namespace Infrastructure.Repositories
             _dbSet = context.Set<T>();
         }
 
-        public async Task<T?> GetByIdAsync(Guid id) => await _dbSet.FindAsync(id);
-        public async Task<List<T>> GetAllAsync() => await _dbSet.ToListAsync();
-        public async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
-        public async Task UpdateAsync(T entity) => _dbSet.Update(entity);
-        public async Task DeleteAsync(Guid id)
+        public virtual async Task<T?> GetByIdAsync(Guid id) => await _dbSet.FindAsync(id);
+        public virtual async Task<List<T>> GetAllAsync() => await _dbSet.ToListAsync();
+        public virtual async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
+        public virtual async Task UpdateAsync(T entity) => _dbSet.Update(entity);
+        public virtual async Task DeleteAsync(Guid id)
         {
             var entity = await GetByIdAsync(id);
             if (entity != null) _dbSet.Remove(entity);
         }
-        public async Task<bool> ExistsAsync(Guid id) => await _dbSet.FindAsync(id) != null;
+        public virtual async Task<bool> ExistsAsync(Guid id) => await _dbSet.FindAsync(id) != null;
 
     }
 }

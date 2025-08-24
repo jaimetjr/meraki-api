@@ -14,9 +14,48 @@ namespace Infrastructure.Configuration.EntityConfigurations
         public void Configure(EntityTypeBuilder<Service> builder)
         {
             builder.HasKey(s => s.Id);
-            builder.OwnsOne(s => s.Price);
-            builder.HasOne(s => s.Category);
-            builder.HasMany(s => s.Benefits);
+
+            builder.Property(s => s.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            builder.Property(s => s.Description)
+                .IsRequired()
+                .HasMaxLength(300);
+
+            builder.Property(s => s.Image)
+                .IsRequired();
+
+            builder.Property(s => s.LongDescription)
+                .HasMaxLength(1000);
+
+            builder.Property(s => s.Duration)
+                .HasMaxLength(50);
+
+            builder.OwnsOne(s => s.Price, price =>
+            {
+                price.Property(p => p.Amount).HasColumnName("PriceAmount").IsRequired();
+                price.Property(p => p.Currency).HasColumnName("PriceCurrency").IsRequired();
+            });
+
+            builder.HasOne(s => s.Category)
+                .WithMany()
+                .HasForeignKey(s => s.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(s => s.Benefits)
+                    .WithMany(b => b.Services)
+                    .UsingEntity<Dictionary<string, object>>(
+                        "ServiceBenefit",
+                        j => j.HasOne<Benefit>().WithMany().HasForeignKey("BenefitId"),
+                        j => j.HasOne<Service>().WithMany().HasForeignKey("ServiceId"),
+                        j =>
+                        {
+                            j.HasKey("ServiceId", "BenefitId");
+                            j.ToTable("ServiceBenefit");
+                        });
+
+
         }
     }
 

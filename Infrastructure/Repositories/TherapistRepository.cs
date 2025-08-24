@@ -22,5 +22,14 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public override async Task<List<Therapist>> GetAllAsync()
+        {
+            return await _dbSet.Include(x => x.Specialties).ToListAsync();
+        }
+
+        public override async Task<Therapist?> GetByIdAsync(Guid id)
+        {
+            return await _dbSet.Include(x => x.Specialties).FirstOrDefaultAsync(x => x.Id == id);
+        }
     }
 }
