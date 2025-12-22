@@ -15,9 +15,9 @@ namespace Infrastructure.Repositories
     {
         public CourseRepository(AppDbContext context) : base(context) { }
 
-        public async Task<List<Course>> GetByStatusAsync(CourseStatus status)
+        public async Task<IReadOnlyCollection<Course>> GetByStatusAsync(CourseStatus status)
         {
-            return await _dbSet.Where(c => c.Status == status).ToListAsync();
+            return (await _dbSet.Where(c => c.Status == status).ToListAsync()).AsReadOnly();
         }
     }
 }

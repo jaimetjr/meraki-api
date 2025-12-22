@@ -6,20 +6,32 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-    public sealed class Category : Entity
+    public sealed class Category : AggregateRoot
     {
         public string Name { get; private set; }
 
-        public Category()
-        {
-            
-        }
+        // EF Core parameterless constructor
+        private Category() { }
+
         public Category(Guid id, string name)
         {
+            if (id == Guid.Empty) throw new ArgumentException("Id cannot be empty", nameof(id));
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is required", nameof(name));
+            if (name.Length > 100) throw new ArgumentException("Name cannot exceed 100 characters", nameof(name));
+
             Id = id;
             Name = name;
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void Update(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is required", nameof(name));
+            if (name.Length > 100) throw new ArgumentException("Name cannot exceed 100 characters", nameof(name));
+
+            Name = name;
+            MarkAsModified();
         }
 
     }

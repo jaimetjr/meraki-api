@@ -9,9 +9,9 @@ namespace Infrastructure.Repositories
     {
         public TestimonialRepository(AppDbContext context) : base(context) { }
 
-        public async Task<List<Testimonial>> GetTopRatedAsync(int count)
+        public async Task<IReadOnlyCollection<Testimonial>> GetTopRatedAsync(int count)
         {
-            return await _dbSet.OrderByDescending(t => t.Rating).Take(count).ToListAsync();
+            return (await _dbSet.OrderByDescending(t => t.Rating).Take(count).ToListAsync()).AsReadOnly();
         }
     }
 

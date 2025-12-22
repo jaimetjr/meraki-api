@@ -48,14 +48,13 @@ namespace Application.Services
             var existing = await _serviceRepo.GetByIdAsync(id);
             if (existing == null) return false;
 
-            var updated = new Service(id, dto.Name, dto.Description, dto.Image, new Money(dto.Price, dto.Currency));
-
-            updated.UpdateDetails(dto.LongDescription, dto.Duration);
+            existing.Update(dto.Name, dto.Description, dto.Image, new Money(dto.Price, dto.Currency));
+            existing.UpdateDetails(dto.LongDescription, dto.Duration);
 
             if (dto.Category != null)
             {
                 var category = new Category(dto.Category.Id, dto.Category.Name);
-                updated.UpdateCategory(category);
+                existing.UpdateCategory(category);
             }
 
             if (dto.Benefits != null)
@@ -67,11 +66,11 @@ namespace Application.Services
                         benefitDto.Title,
                         benefitDto.Description
                     );
-                    updated.AddBenefit(benefit);
+                    existing.AddBenefit(benefit);
                 }
             }
 
-            await _serviceRepo.UpdateAsync(updated);
+            await _serviceRepo.UpdateAsync(existing);
             return true;
         }
 

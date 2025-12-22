@@ -1,14 +1,9 @@
 ﻿using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.Interfaces
 {
     public interface IBenefitRepository : IGenericRepository<Benefit>
     {
-        Task<List<Benefit>> SearchByKeywordAsync(string keyword);
+        Task<IReadOnlyCollection<Benefit>> SearchByKeywordAsync(string keyword);
     }
 }

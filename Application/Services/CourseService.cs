@@ -68,8 +68,7 @@ namespace Application.Services
             var existing = await _courseRepo.GetByIdAsync(id);
             if (existing == null) return false;
 
-            var updated = new Course(
-                id,
+            existing.Update(
                 dto.Title,
                 dto.Description,
                 dto.Image,
@@ -82,10 +81,10 @@ namespace Application.Services
             {
                 var modality = Enum.Parse<Modality>(dto.Modality);
                 var price = new Money(dto.Price ?? 0, dto.Currency);
-                updated.Schedule(dto.Date.Value, modality, price, dto.Link);
+                existing.Schedule(dto.Date.Value, modality, price, dto.Link);
             }
 
-            await _courseRepo.UpdateAsync(updated);
+            await _courseRepo.UpdateAsync(existing);
             return true;
         }
 

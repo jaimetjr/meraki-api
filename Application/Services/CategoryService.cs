@@ -41,8 +41,8 @@ namespace Application.Services
             var existing = await _categoryRepo.GetByIdAsync(id);
             if (existing == null) return false;
 
-            var updated = new Category(id, dto.Name);
-            await _categoryRepo.UpdateAsync(updated);
+            existing.Update(dto.Name);
+            await _categoryRepo.UpdateAsync(existing);
             return true;
         }
 

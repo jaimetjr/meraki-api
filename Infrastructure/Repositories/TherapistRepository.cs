@@ -14,17 +14,17 @@ namespace Infrastructure.Repositories
     {
         public TherapistRepository(AppDbContext context) : base(context) { }
 
-        public async Task<List<Therapist>> FindBySpecialtyAsync(string specialtyName)
+        public async Task<IReadOnlyCollection<Therapist>> FindBySpecialtyAsync(string specialtyName)
         {
-            return await _dbSet
+            return (await _dbSet
                 .Include(t => t.Specialties)
                 .Where(t => t.Specialties.Any(s => s.Name == specialtyName))
-                .ToListAsync();
+                .ToListAsync()).AsReadOnly();
         }
 
-        public override async Task<List<Therapist>> GetAllAsync()
+        public override async Task<IReadOnlyCollection<Therapist>> GetAllAsync()
         {
-            return await _dbSet.Include(x => x.Specialties).ToListAsync();
+            return (await _dbSet.Include(x => x.Specialties).ToListAsync()).AsReadOnly();
         }
 
         public override async Task<Therapist?> GetByIdAsync(Guid id)

@@ -52,14 +52,7 @@ namespace Application.Services
             var existing = await _therapistRepo.GetByIdAsync(id);
             if (existing == null) return false;
 
-            var updated = new Therapist(
-                id,
-                dto.Name,
-                dto.Bio,
-                dto.Image,
-                dto.Experience,
-                dto.Education
-            );
+            existing.Update(dto.Name, dto.Bio, dto.Image, dto.Experience, dto.Education);
 
             if (dto.Specialties != null)
             {
@@ -70,11 +63,11 @@ namespace Application.Services
                         specialtyDto.Name,
                         specialtyDto.Description
                     );
-                    updated.AddSpecialty(specialty);
+                    existing.AddSpecialty(specialty);
                 }
             }
 
-            await _therapistRepo.UpdateAsync(updated);
+            await _therapistRepo.UpdateAsync(existing);
             return true;
         }
 

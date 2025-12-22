@@ -47,8 +47,8 @@ namespace Application.Services
             var existing = await _specialtyRepo.GetByIdAsync(id);
             if (existing == null) return false;
 
-            var updated = new Specialty(id, dto.Name, dto.Description);
-            await _specialtyRepo.UpdateAsync(updated);
+            existing.Update(dto.Name, dto.Description);
+            await _specialtyRepo.UpdateAsync(existing);
             return true;
         }
 

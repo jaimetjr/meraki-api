@@ -52,8 +52,8 @@ namespace Application.Services
             var existing = await _benefitRepo.GetByIdAsync(id);
             if (existing == null) return false;
 
-            var updated = new Benefit(id, dto.Title, dto.Description);
-            await _benefitRepo.UpdateAsync(updated);
+            existing.Update(dto.Title, dto.Description);
+            await _benefitRepo.UpdateAsync(existing);
             return true;
         }
 

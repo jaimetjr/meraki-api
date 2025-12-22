@@ -9,11 +9,11 @@ namespace Infrastructure.Repositories
     {
         public BenefitRepository(AppDbContext context) : base(context) { }
 
-        public async Task<List<Benefit>> SearchByKeywordAsync(string keyword)
+        public async Task<IReadOnlyCollection<Benefit>> SearchByKeywordAsync(string keyword)
         {
-            return await _dbSet
+            return (await _dbSet
                 .Where(b => b.Title.Contains(keyword) || (b.Description != null && b.Description.Contains(keyword)))
-                .ToListAsync();
+                .ToListAsync()).AsReadOnly();
         }
     }
 

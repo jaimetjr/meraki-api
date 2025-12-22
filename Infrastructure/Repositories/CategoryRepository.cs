@@ -14,9 +14,9 @@ namespace Infrastructure.Repositories
     {
         public CategoryRepository(AppDbContext context) : base(context) { }
 
-        public async Task<List<Category>> GetAllOrderedAsync()
+        public async Task<IReadOnlyCollection<Category>> GetAllOrderedAsync()
         {
-            return await _dbSet.OrderBy(c => c.Name).ToListAsync();
+            return (await _dbSet.OrderBy(c => c.Name).ToListAsync()).AsReadOnly();
         }
     }
 

@@ -9,14 +9,17 @@ namespace Infrastructure.Repositories
     {
         public ServiceRepository(AppDbContext context) : base(context) { }
 
-        public async Task<List<Service>> GetByCategoryAsync(string category) =>
-            await _dbSet.Where(s => s.Category != null && s.Category.Name == category).ToListAsync();
+        public async Task<IReadOnlyCollection<Service>> GetByCategoryAsync(string category) =>
+            (await _dbSet
+                .Include(s => s.Category)
+                .Where(s => s.Category != null && s.Category.Name == category)
+                .ToListAsync()).AsReadOnly();
 
-        public override async Task<List<Service>> GetAllAsync()
+        public override async Task<IReadOnlyCollection<Service>> GetAllAsync()
         {
-            return await _dbSet.Include(x => x.Category)
+            return (await _dbSet.Include(x => x.Category)
                                .Include(x => x.Benefits)
-                               .ToListAsync();
+                               .ToListAsync()).AsReadOnly();
         }
 
         public override async Task<Service?> GetByIdAsync(Guid id)
