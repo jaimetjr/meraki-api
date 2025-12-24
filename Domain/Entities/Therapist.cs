@@ -18,9 +18,8 @@ namespace Domain.Entities
         // EF Core parameterless constructor
         private Therapist() { }
 
-        public Therapist(Guid id, string name, string bio, string image, string experience, string education)
+        public Therapist(string name, string bio, string image, string experience, string education)
         {
-            if (id == Guid.Empty) throw new ArgumentException("Id cannot be empty", nameof(id));
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is required", nameof(name));
             if (string.IsNullOrWhiteSpace(bio)) throw new ArgumentException("Bio is required", nameof(bio));
             if (string.IsNullOrWhiteSpace(image)) throw new ArgumentException("Image is required", nameof(image));
@@ -29,7 +28,6 @@ namespace Domain.Entities
             if (name.Length > 100) throw new ArgumentException("Name cannot exceed 100 characters", nameof(name));
             if (bio.Length > 500) throw new ArgumentException("Bio cannot exceed 500 characters", nameof(bio));
 
-            Id = id;
             Name = name;
             Bio = bio;
             Image = image;

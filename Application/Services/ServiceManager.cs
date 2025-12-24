@@ -10,11 +10,17 @@ namespace Application.Services
     public class ServiceManager : IServiceManager
     {
         private readonly IServiceRepository _serviceRepo;
+        private readonly ICategoryRepository _categoryRepo;
+        private readonly IBenefitRepository _benefitRepo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ServiceManager(IServiceRepository serviceRepo, IMapper mapper)
+        public ServiceManager(IServiceRepository serviceRepo, ICategoryRepository categoryRepo, IBenefitRepository benefitRepo, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _serviceRepo = serviceRepo;
+            _categoryRepo = categoryRepo;
+            _benefitRepo = benefitRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -38,8 +44,69 @@ namespace Application.Services
 
         public async Task<ServiceDto> CreateAsync(ServiceDto dto)
         {
-            var service = _mapper.Map<Service>(dto);
+            
+            // Create Money value object from DTO
+            var price = new Money(dto.Price, dto.Currency);
+            
+            // Create Service entity using constructor
+            var service = new Service(
+                dto.Name,
+                dto.Description,
+                dto.Image,
+                price
+            );
+            
+            // Handle optional properties
+            if (!string.IsNullOrWhiteSpace(dto.LongDescription) || !string.IsNullOrWhiteSpace(dto.Duration))
+            {
+                service.UpdateDetails(dto.LongDescription, dto.Duration);
+            }
+            
+            // Handle Category relationship
+            if (dto.Category != null)
+            {
+                Category? category = null;
+                if (dto.Category.Id != Guid.Empty)
+                {
+                    // Load existing category
+                    category = await _categoryRepo.GetByIdAsync(dto.Category.Id);
+                }
+                
+                if (category == null)
+                {
+                    // Create new category and add to repository for proper tracking
+                    category = new Category(dto.Category.Name);
+                    await _categoryRepo.AddAsync(category);
+                }
+                
+                service.UpdateCategory(category);
+            }
+            
+            // Handle Benefits relationship
+            if (dto.Benefits != null)
+            {
+                foreach (var benefitDto in dto.Benefits)
+                {
+                    Benefit? benefit = null;
+                    if (benefitDto.Id != Guid.Empty)
+                    {
+                        // Load existing benefit
+                        benefit = await _benefitRepo.GetByIdAsync(benefitDto.Id);
+                    }
+                    
+                    if (benefit == null)
+                    {
+                        // Create new benefit and add to repository for proper tracking
+                        benefit = new Benefit(benefitDto.Title, benefitDto.Description);
+                        await _benefitRepo.AddAsync(benefit);
+                    }
+                    
+                    service.AddBenefit(benefit);
+                }
+            }
+            
             await _serviceRepo.AddAsync(service);
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<ServiceDto>(service);
         }
 
@@ -53,7 +120,20 @@ namespace Application.Services
 
             if (dto.Category != null)
             {
-                var category = new Category(dto.Category.Id, dto.Category.Name);
+                Category? category = null;
+                if (dto.Category.Id != Guid.Empty)
+                {
+                    // Load existing category
+                    category = await _categoryRepo.GetByIdAsync(dto.Category.Id);
+                }
+                
+                if (category == null)
+                {
+                    // Create new category and add to repository for proper tracking
+                    category = new Category(dto.Category.Name);
+                    await _categoryRepo.AddAsync(category);
+                }
+                
                 existing.UpdateCategory(category);
             }
 
@@ -61,16 +141,26 @@ namespace Application.Services
             {
                 foreach (var benefitDto in dto.Benefits)
                 {
-                    var benefit = new Benefit(
-                        benefitDto.Id != Guid.Empty ? benefitDto.Id : Guid.NewGuid(),
-                        benefitDto.Title,
-                        benefitDto.Description
-                    );
+                    Benefit? benefit = null;
+                    if (benefitDto.Id != Guid.Empty)
+                    {
+                        // Load existing benefit
+                        benefit = await _benefitRepo.GetByIdAsync(benefitDto.Id);
+                    }
+                    
+                    if (benefit == null)
+                    {
+                        // Create new benefit and add to repository for proper tracking
+                        benefit = new Benefit(benefitDto.Title, benefitDto.Description);
+                        await _benefitRepo.AddAsync(benefit);
+                    }
+                    
                     existing.AddBenefit(benefit);
                 }
             }
 
             await _serviceRepo.UpdateAsync(existing);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -80,6 +170,7 @@ namespace Application.Services
             if (!exists) return false;
 
             await _serviceRepo.DeleteAsync(id);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
     }

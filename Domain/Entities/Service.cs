@@ -22,16 +22,14 @@ public sealed class Service : AggregateRoot
     // EF Core parameterless constructor
     private Service() { }
 
-    public Service(Guid id, string name, string description, string image, Money money)
+    public Service(string name, string description, string image, Money money)
     {
-        if (id == Guid.Empty) throw new ArgumentException("Id cannot be empty", nameof(id));
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is required", nameof(name));
         if (string.IsNullOrWhiteSpace(description)) throw new ArgumentException("Description is required", nameof(description));
         if (string.IsNullOrWhiteSpace(image)) throw new ArgumentException("Image is required", nameof(image));
         if (name.Length > 100) throw new ArgumentException("Name cannot exceed 100 characters", nameof(name));
         if (description.Length > 500) throw new ArgumentException("Description cannot exceed 500 characters", nameof(description));
 
-        Id = id;
         Name = name;
         Description = description;
         Image = image;
@@ -54,14 +52,25 @@ public sealed class Service : AggregateRoot
     {
         if (category == null) throw new ArgumentNullException(nameof(category));
         Category = category;
-        CategoryId = category.Id;
+        // Only set CategoryId if the category already has an ID (existing entity)
+        // For new categories, EF Core will set CategoryId automatically when SaveChanges is called
+        if (category.Id != Guid.Empty)
+        {
+            CategoryId = category.Id;
+        }
         MarkAsModified();
     }
 
     public void AddBenefit(Benefit benefit)
     {
         if (benefit == null) throw new ArgumentNullException(nameof(benefit));
-        if (!Benefits.Any(b => b.Id == benefit.Id))
+        
+        // Check for duplicates: by reference equality (works for both new and existing)
+        // or by ID if the benefit already has an ID (existing entity)
+        bool alreadyExists = Benefits.Contains(benefit) || 
+                            (benefit.Id != Guid.Empty && Benefits.Any(b => b.Id == benefit.Id));
+        
+        if (!alreadyExists)
         {
             Benefits.Add(benefit);
             MarkAsModified();

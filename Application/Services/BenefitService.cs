@@ -14,11 +14,13 @@ namespace Application.Services
     public class BenefitService : IBenefitService
     {
         private readonly IBenefitRepository _benefitRepo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public BenefitService(IBenefitRepository benefitRepo, IMapper mapper)
+        public BenefitService(IBenefitRepository benefitRepo, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _benefitRepo = benefitRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -42,8 +44,9 @@ namespace Application.Services
 
         public async Task<BenefitDto> CreateAsync(BenefitDto dto)
         {
-            var benefit = new Benefit(dto.Id != Guid.Empty ? dto.Id : Guid.NewGuid(), dto.Title, dto.Description);
+            var benefit = new Benefit(dto.Title, dto.Description);
             await _benefitRepo.AddAsync(benefit);
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<BenefitDto>(benefit);
         }
 
@@ -54,6 +57,7 @@ namespace Application.Services
 
             existing.Update(dto.Title, dto.Description);
             await _benefitRepo.UpdateAsync(existing);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -63,6 +67,7 @@ namespace Application.Services
             if (!exists) return false;
 
             await _benefitRepo.DeleteAsync(id);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 

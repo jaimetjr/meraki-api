@@ -16,9 +16,20 @@ namespace IoC
     {
         public static IServiceCollection AddDependencyInjection(this IServiceCollection services, string connectionString)
         {
-            // Register DbContext
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(connectionString)); // Or UseNpgsql for PostgreSQL
+            // Register CurrentUserService and AuditService first (needed by interceptor)
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IAuditService, AuditService>();
+
+            // Register DbContext with interceptor
+            services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+            {
+                options.UseNpgsql(connectionString);
+                var currentUserService = serviceProvider.GetRequiredService<ICurrentUserService>();
+                options.AddInterceptors(new AuditInterceptor(currentUserService));
+            });
+
+            // Register Unit of Work
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Register generic repository (optional if used directly)
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -31,6 +42,8 @@ namespace IoC
             services.AddScoped<IBenefitRepository, BenefitRepository>();
             services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
             services.AddScoped<ITestimonialRepository, TestimonialRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
             // Automapper configuration
             services.AddAutoMapper(c => c.AddProfile<AutoMapperProfile>());
@@ -40,10 +53,10 @@ namespace IoC
             services.AddScoped<ITherapistService, TherapistService>();
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<ICategoryService, CategoryService>();
-            services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IBenefitService, BenefitService>();
             services.AddScoped<ISpecialtyService, SpecialtyService>();
             services.AddScoped<ITestimonialService, TestimonialService>();
+            services.AddScoped<IAuthService, AuthService>();
 
             // Validators
             services.AddScoped<IValidator<ServiceDto>, ServiceValidator>();

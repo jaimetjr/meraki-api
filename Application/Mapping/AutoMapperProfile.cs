@@ -49,6 +49,10 @@ namespace Application.Mapping
 
             // Testimonial ↔ DTO
             CreateMap<Testimonial, TestimonialDto>().ReverseMap();
+
+            // User ↔ DTO
+            CreateMap<User, UserDto>().ReverseMap()
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore());
         }
     }
 }

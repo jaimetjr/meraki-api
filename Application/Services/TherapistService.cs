@@ -14,11 +14,15 @@ namespace Application.Services
     public class TherapistService : ITherapistService
     {
         private readonly ITherapistRepository _therapistRepo;
+        private readonly ISpecialtyRepository _specialtyRepo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public TherapistService(ITherapistRepository therapistRepo, IMapper mapper)
+        public TherapistService(ITherapistRepository therapistRepo, ISpecialtyRepository specialtyRepo, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _therapistRepo = therapistRepo;
+            _specialtyRepo = specialtyRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -42,8 +46,40 @@ namespace Application.Services
 
         public async Task<TherapistDto> CreateAsync(TherapistDto dto)
         {
-            var therapist = _mapper.Map<Therapist>(dto);
+            // Create Therapist entity using constructor
+            var therapist = new Therapist(
+                dto.Name,
+                dto.Bio,
+                dto.Image,
+                dto.Experience,
+                dto.Education
+            );
+            
+            // Handle optional Specialties collection
+            if (dto.Specialties != null)
+            {
+                foreach (var specialtyDto in dto.Specialties)
+                {
+                    Specialty? specialty = null;
+                    if (specialtyDto.Id != Guid.Empty)
+                    {
+                        // Load existing specialty
+                        specialty = await _specialtyRepo.GetByIdAsync(specialtyDto.Id);
+                    }
+                    
+                    if (specialty == null)
+                    {
+                        // Create new specialty and add to repository for proper tracking
+                        specialty = new Specialty(specialtyDto.Name, specialtyDto.Description);
+                        await _specialtyRepo.AddAsync(specialty);
+                    }
+                    
+                    therapist.AddSpecialty(specialty);
+                }
+            }
+            
             await _therapistRepo.AddAsync(therapist);
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<TherapistDto>(therapist);
         }
 
@@ -58,16 +94,26 @@ namespace Application.Services
             {
                 foreach (var specialtyDto in dto.Specialties)
                 {
-                    var specialty = new Specialty(
-                        specialtyDto.Id != Guid.Empty ? specialtyDto.Id : Guid.NewGuid(),
-                        specialtyDto.Name,
-                        specialtyDto.Description
-                    );
+                    Specialty? specialty = null;
+                    if (specialtyDto.Id != Guid.Empty)
+                    {
+                        // Load existing specialty
+                        specialty = await _specialtyRepo.GetByIdAsync(specialtyDto.Id);
+                    }
+                    
+                    if (specialty == null)
+                    {
+                        // Create new specialty and add to repository for proper tracking
+                        specialty = new Specialty(specialtyDto.Name, specialtyDto.Description);
+                        await _specialtyRepo.AddAsync(specialty);
+                    }
+                    
                     existing.AddSpecialty(specialty);
                 }
             }
 
             await _therapistRepo.UpdateAsync(existing);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -77,6 +123,7 @@ namespace Application.Services
             if (!exists) return false;
 
             await _therapistRepo.DeleteAsync(id);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 

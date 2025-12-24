@@ -9,11 +9,13 @@ namespace Application.Services
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _categoryRepo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CategoryService(ICategoryRepository categoryRepo, IMapper mapper)
+        public CategoryService(ICategoryRepository categoryRepo, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _categoryRepo = categoryRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -31,8 +33,9 @@ namespace Application.Services
 
         public async Task<CategoryDto> CreateAsync(CategoryDto dto)
         {
-            var category = new Category(dto.Id != Guid.Empty ? dto.Id : Guid.NewGuid(), dto.Name);
+            var category = new Category(dto.Name);
             await _categoryRepo.AddAsync(category);
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<CategoryDto>(category);
         }
 
@@ -43,6 +46,7 @@ namespace Application.Services
 
             existing.Update(dto.Name);
             await _categoryRepo.UpdateAsync(existing);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -52,6 +56,7 @@ namespace Application.Services
             if (!exists) return false;
 
             await _categoryRepo.DeleteAsync(id);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
     }

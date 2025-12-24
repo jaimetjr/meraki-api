@@ -11,11 +11,13 @@ namespace Application.Services
     public class CourseService : ICourseService
     {
         private readonly ICourseRepository _courseRepo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CourseService(ICourseRepository courseRepo, IMapper mapper)
+        public CourseService(ICourseRepository courseRepo, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _courseRepo = courseRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -43,7 +45,6 @@ namespace Application.Services
         public async Task<CourseDto> CreateAsync(CourseDto dto)
         {
             var course = new Course(
-                dto.Id != Guid.Empty ? dto.Id : Guid.NewGuid(),
                 dto.Title,
                 dto.Description,
                 dto.Image,
@@ -60,6 +61,7 @@ namespace Application.Services
             }
 
             await _courseRepo.AddAsync(course);
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<CourseDto>(course);
         }
 
@@ -85,6 +87,7 @@ namespace Application.Services
             }
 
             await _courseRepo.UpdateAsync(existing);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -94,6 +97,7 @@ namespace Application.Services
             if (!exists) return false;
 
             await _courseRepo.DeleteAsync(id);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
     }

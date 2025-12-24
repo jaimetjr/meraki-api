@@ -9,11 +9,13 @@ namespace Application.Services
     public class TestimonialService : ITestimonialService
     {
         private readonly ITestimonialRepository _repo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public TestimonialService(ITestimonialRepository repo, IMapper mapper)
+        public TestimonialService(ITestimonialRepository repo, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repo = repo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -34,9 +36,18 @@ namespace Application.Services
 
         public async Task<TestimonialDto> CreateAsync(TestimonialDto dto)
         {
-            var entity = _mapper.Map<Testimonial>(dto);
-            await _repo.AddAsync(entity);
-            return _mapper.Map<TestimonialDto>(entity);
+            // Create Testimonial entity using constructor
+            var testimonial = new Testimonial(
+                dto.AuthorName,
+                dto.AuthorAvatarUrl,
+                dto.Rating,
+                dto.Content,
+                dto.AuthorBadge
+            );
+            
+            await _repo.AddAsync(testimonial);
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<TestimonialDto>(testimonial);
         }
 
         public async Task<bool> UpdateAsync(Guid id, TestimonialDto dto)
@@ -46,6 +57,7 @@ namespace Application.Services
 
             existing.Update(dto.AuthorName, dto.AuthorAvatarUrl, dto.Rating, dto.Content, dto.AuthorBadge);
             await _repo.UpdateAsync(existing);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -55,6 +67,7 @@ namespace Application.Services
             if (!exists) return false;
 
             await _repo.DeleteAsync(id);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
     }

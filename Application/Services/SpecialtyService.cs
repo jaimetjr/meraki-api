@@ -9,11 +9,13 @@ namespace Application.Services
     public class SpecialtyService : ISpecialtyService
     {
         private readonly ISpecialtyRepository _specialtyRepo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public SpecialtyService(ISpecialtyRepository specialtyRepo, IMapper mapper)
+        public SpecialtyService(ISpecialtyRepository specialtyRepo, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _specialtyRepo = specialtyRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -37,8 +39,9 @@ namespace Application.Services
 
         public async Task<SpecialtyDto> CreateAsync(SpecialtyDto dto)
         {
-            var specialty = new Specialty(dto.Id != Guid.Empty ? dto.Id : Guid.NewGuid(), dto.Name, dto.Description);
+            var specialty = new Specialty(dto.Name, dto.Description);
             await _specialtyRepo.AddAsync(specialty);
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<SpecialtyDto>(specialty);
         }
 
@@ -49,6 +52,7 @@ namespace Application.Services
 
             existing.Update(dto.Name, dto.Description);
             await _specialtyRepo.UpdateAsync(existing);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -58,6 +62,7 @@ namespace Application.Services
             if (!exists) return false;
 
             await _specialtyRepo.DeleteAsync(id);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
